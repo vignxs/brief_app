@@ -1,0 +1,66 @@
+{
+    "clientName": "Thunder Client",
+    "collectionName": "Brief_App",
+    "collectionId": "b085a84d-96a0-4ee8-b2fd-b5a058e30f67",
+    "dateExported": "2024-10-14T04:51:25.776Z",
+    "version": "1.2",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "95d6097c-d189-4c11-b966-c8c45dc38ade",
+            "colId": "b085a84d-96a0-4ee8-b2fd-b5a058e30f67",
+            "containerId": "",
+            "name": "Register a New User (Admin/SuperAdmin only):",
+            "url": "http://127.0.0.1:5000/register",
+            "method": "POST",
+            "sortNum": 20000,
+            "created": "2024-10-14T04:26:14.856Z",
+            "modified": "2024-10-14T04:50:41.177Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\r\n  \"username\": \"new_creator\",\r\n  \"password\": \"password123\",\r\n  \"email\": \"new_creator@example.com\",\r\n  \"user_firstname\": \"New\",\r\n  \"user_lastname\": \"Creator\",\r\n  \"role\": \"creator\"\r\n}\r\n",
+                "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyODg4MTQyNSwianRpIjoiYzVhMzc4ZDUtMzA3My00ODdlLWIwMjEtZmU1YTQ4NjkxNjJiIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6InN1cGVyX2FkbWluIn0sIm5iZiI6MTcyODg4MTQyNSwiY3NyZiI6IjJiMDg2ZjM4LTRkZWItNDM3MC1hMDkyLTg2ZDVjZDg1MmVlZiIsImV4cCI6MTcyODg4NTAyNX0.PpcniitjJhcWbo7XenIIKnHROl8BBwyiBL99QT7fMaU"
+            }
+        },
+        {
+            "_id": "958586d9-91db-427f-8c60-db98526192a3",
+            "colId": "b085a84d-96a0-4ee8-b2fd-b5a058e30f67",
+            "containerId": "",
+            "name": "SUPER - ADMIN CREATE",
+            "url": "http://localhost:5000/create_superadmin",
+            "method": "POST",
+            "sortNum": 40000,
+            "created": "2024-10-14T04:44:03.728Z",
+            "modified": "2024-10-14T04:44:25.100Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"password123\",\r\n    \"user_firstname\": \"Super\",\r\n    \"user_lastname\": \"Admin\",\r\n    \"user_email\": \"admin@example.com\"\r\n}\r\n",
+                "form": []
+            }
+        },
+        {
+            "_id": "fcd1fb39-3a78-459b-b37b-8453697d042b",
+            "colId": "b085a84d-96a0-4ee8-b2fd-b5a058e30f67",
+            "containerId": "",
+            "name": "LOGIN",
+            "url": "http://localhost:5000/login",
+            "method": "POST",
+            "sortNum": 50000,
+            "created": "2024-10-14T04:45:09.134Z",
+            "modified": "2024-10-14T04:46:15.848Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\r\n  \"username\": \"admin\",\r\n  \"password\": \"password123\"\r\n}\r\n",
+                "form": []
+            }
+        }
+    ],
+    "ref": "TZcu0g0Tu8CgLq4otkssQUTh4EaedbSB52r0CIYupdh6Jjg_-bzeb35H3NS23UnLcLu9tOaoryF3Ee6pAfNj8Q"
+}
