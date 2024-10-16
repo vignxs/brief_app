@@ -214,29 +214,29 @@ def create_brief():
         return jsonify({"msg": str(e)}), 400
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+# @app.route("/")
+# def index():
+#     return render_template("index.html")
 
 
-@app.route("/login2")
-def login_page():
-    return render_template("login.html")
+# @app.route("/login2")
+# def login_page():
+#     return render_template("login.html")
 
 
-@app.route("/register")
-def register_page():
-    return render_template("register.html")
+# @app.route("/register")
+# def register_page():
+#     return render_template("register.html")
 
 
-@app.route("/create_brief")
-def create_brief_page():
-    return render_template("create_brief.html")
+# @app.route("/create_brief")
+# def create_brief_page():
+#     return render_template("create_brief.html")
 
 
-@app.route("/briefs_page")
-def briefs_page():
-    return render_template("briefs.html")
+# @app.route("/briefs_page")
+# def briefs_page():
+#     return render_template("briefs.html")
 
 
 @app.route("/briefs", methods=["GET"])
