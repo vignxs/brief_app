@@ -131,7 +131,6 @@ def login():
 @json_required
 @token_required
 def submit_brief(user_id):
-    # Check if the user is a Creator
     try:
         with engine.connect() as connection:
             user_query = text("""
@@ -140,6 +139,7 @@ def submit_brief(user_id):
             user_role = connection.execute(
                 user_query, {"user_id": user_id}).fetchone()
 
+            # Check if the user is a Creator
             if not user_role or user_role.role != 'Creator':
                 return jsonify({
                     'message': 'Unauthorized: Only Creator role users can submit a brief!',
@@ -184,9 +184,32 @@ def submit_brief(user_id):
                     'epd_stage': data.get('epd_stage'),
                     'file_attachment': data.get('file_attachment')
                 }
-
-                # Execute the query with the parameters
                 connection.execute(insert_query, params)
+
+                brief_id_query = text(
+                    "SELECT IDENT_CURRENT('research_brief') AS [IDENT_CURRENT]")
+                brief_id_result = connection.execute(brief_id_query).fetchone()
+                print(brief_id_result)
+                if brief_id_result is None:
+                    return jsonify({
+                        'message': 'Failed to retrieve the brief ID!',
+                        'statusCode': 500,
+                        'status': 'error'
+                    }), 500
+
+                brief_id = brief_id_result[0]
+                print(brief_id)
+
+                # Insert into brief_status_actions with a status of 'Pending'
+                status_insert_query = text("""
+                    INSERT INTO [dbo].[brief_status_actions] 
+                    (brief_id, status) 
+                    VALUES (:brief_id, 'Pending')
+                """)
+
+                # Execute the status insert query
+                connection.execute(status_insert_query, {'brief_id': brief_id})
+
             
             return jsonify({
                 'message': 'Research brief submitted successfully!',
@@ -202,6 +225,301 @@ def submit_brief(user_id):
             'status': 'error'
         }), 500
 
+
+@app.route('/api/approve_brief/<int:brief_id>', methods=['PUT'])
+@token_required
+@json_required
+def approve_brief(user_id, brief_id):
+    data = request.get_json()
+
+    # Get required fields
+    start_date = data.get('start_date')
+    po_approval = data.get('po_approval')
+    agency_finalisation = data.get('agency_finalisation')
+    questionnaire_coding_date = data.get('questionnaire_coding_date')
+    cpi_total = data.get('cpi_total')
+    travel_cost = data.get('travel_cost')
+    miscellaneous_cost = data.get('miscellaneous_cost')
+    total_cost = data.get('total_cost')
+    research_design_attachment = data.get('research_design_attachment')
+
+    if not all([start_date, po_approval, agency_finalisation, questionnaire_coding_date, cpi_total, travel_cost, miscellaneous_cost, total_cost]):
+        return jsonify({
+            'message': 'All fields for approval must be filled!',
+            'statusCode': 400,
+            'status': 'error'
+        }), 400
+
+    try:
+        with engine.connect() as connection:
+            # Ensure the user is a Project Coordinator (the receiver)
+            user_role_query = text("""
+                SELECT role FROM [dbo].[user_data] WHERE user_id = :user_id
+            """)
+            user_role = connection.execute(
+                user_role_query, {"user_id": user_id}).fetchone()
+
+            if not user_role or user_role.role != 'Project Coordinator':
+                return jsonify({
+                    'message': 'Unauthorized: Only Project Coordinators can approve briefs!',
+                    'statusCode': 403,
+                    'status': 'error'
+                }), 403
+
+            # Update the status to 'Approved'
+            update_or_insert_query = text("""
+                MERGE INTO [dbo].[brief_status_actions] AS target
+                USING (VALUES (:brief_id, :user_id, :start_date, :po_approval, :agency_finalisation, :questionnaire_coding_date, :cpi_total, :travel_cost, :miscellaneous_cost, :total_cost, :research_design_attachment))
+                AS source (brief_id, user_id, start_date, po_approval, agency_finalisation, questionnaire_coding_date, cpi_total, travel_cost, miscellaneous_cost, total_cost, research_design_attachment)
+                ON target.brief_id = source.brief_id
+
+                -- If the row exists, update it
+                WHEN MATCHED THEN
+                    UPDATE SET
+                        target.status = 'Approved',
+                        target.approved_by = source.user_id,
+                        target.start_date = source.start_date,
+                        target.po_approval = source.po_approval,
+                        target.agency_finalisation = source.agency_finalisation,
+                        target.questionnaire_coding_date = source.questionnaire_coding_date,
+                        target.cpi_total = source.cpi_total,
+                        target.travel_cost = source.travel_cost,
+                        target.miscellaneous_cost = source.miscellaneous_cost,
+                        target.total_cost = source.total_cost,
+                        target.research_design_attachment = source.research_design_attachment,
+                        target.update_date = GETDATE()
+
+                -- If the row does not exist, insert it
+                WHEN NOT MATCHED THEN
+                    INSERT (brief_id, status, approved_by, start_date, po_approval, agency_finalisation, questionnaire_coding_date,
+                            cpi_total, travel_cost, miscellaneous_cost, total_cost, research_design_attachment, update_date)
+                    VALUES (source.brief_id, 'Approved', source.user_id, source.start_date, source.po_approval, source.agency_finalisation, source.questionnaire_coding_date,
+                            source.cpi_total, source.travel_cost, source.miscellaneous_cost, source.total_cost, source.research_design_attachment, GETDATE());
+            """)
+
+
+            # Execute the query
+            connection.execute(update_or_insert_query, {
+                'user_id': user_id,
+                'start_date': start_date,
+                'po_approval': po_approval,
+                'agency_finalisation': agency_finalisation,
+                'questionnaire_coding_date': questionnaire_coding_date,
+                'cpi_total': cpi_total,
+                'travel_cost': travel_cost,
+                'miscellaneous_cost': miscellaneous_cost,
+                'total_cost': total_cost,
+                'research_design_attachment': research_design_attachment,
+                'brief_id': brief_id
+            })
+
+
+            return jsonify({
+                'message': 'Brief approved successfully!',
+                'statusCode': 200,
+                'status': 'success'
+            }), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({
+            'message': 'Failed to approve the brief!',
+            'error': str(e),
+            'statusCode': 500,
+            'status': 'error'
+        }), 500
+
+
+@app.route('/api/reject_brief/<int:brief_id>', methods=['PUT'])
+@token_required
+@json_required
+def reject_brief(user_id, brief_id):
+    data = request.get_json()
+
+    # Get required fields
+    rejection_reason = data.get('rejection_reason')
+
+    if not rejection_reason:
+        return jsonify({
+            'message': 'Rejection reason is required!',
+            'statusCode': 400,
+            'status': 'error'
+        }), 400
+
+    try:
+        with engine.connect() as connection:
+            # Ensure the user is a Project Coordinator (the receiver)
+            user_role_query = text("""
+                SELECT role FROM [dbo].[user_data] WHERE user_id = :user_id
+            """)
+            user_role = connection.execute(
+                user_role_query, {"user_id": user_id}).fetchone()
+
+            if not user_role or user_role.role != 'Project Coordinator':
+                return jsonify({
+                    'message': 'Unauthorized: Only Project Coordinators can reject briefs!',
+                    'statusCode': 403,
+                    'status': 'error'
+                }), 403
+
+            # Update the status to 'Disapproved' and log rejection details
+            update_query = text("""
+                UPDATE [dbo].[brief_status_actions]
+                SET status = 'Disapproved',
+                    rejected_by = :user_id,
+                    rejection_reason = :rejection_reason,
+                    update_date = GETDATE()
+                WHERE brief_id = :brief_id
+            """)
+
+            connection.execute(update_query, {
+                'user_id': user_id,
+                'rejection_reason': rejection_reason,
+                'brief_id': brief_id
+            })
+
+            return jsonify({
+                'message': 'Brief rejected successfully!',
+                'statusCode': 200,
+                'status': 'success'
+            }), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({
+            'message': 'Failed to reject the brief!',
+            'error': str(e),
+            'statusCode': 500,
+            'status': 'error'
+        }), 500
+
+
+@app.route('/api/reviewer/all_briefs', methods=['GET'])
+@token_required
+def get_all_pending_briefs(user_id):
+    try:
+        # Check if the user is a receiver
+        with engine.connect() as connection:
+            user_query = text("""
+                SELECT role FROM [dbo].[user_data] WHERE user_id = :user_id
+            """)
+            user_role = connection.execute(
+                user_query, {"user_id": user_id}).fetchone()
+
+            # Check if the user is a Project Coordinator
+            if not user_role or user_role.role != 'Project Coordinator':
+                return jsonify({
+                    'message': 'Unauthorized: Only Project Coordinator can access this endpoint!',
+                    'statusCode': 403,
+                    'status': 'error'
+                }), 403
+
+            query = text("""
+                SELECT
+                    rb.category_type AS category,
+                    rb.product_type,
+                    rb.study_type,
+                    rb.brand,
+                    rb.research_design AS research_type,
+                    bsa.total_cost,
+                    rb.deadline
+                FROM
+                    [dbo].[research_brief] rb
+                JOIN
+                    [dbo].[brief_status_actions] bsa ON rb.brief_id = bsa.brief_id
+                WHERE
+                    bsa.status = 'Pending'
+            """)
+
+
+            results = connection.execute(query).fetchall()
+
+            # Update the dictionary comprehension to match the selected columns
+            briefs = [{
+                'category': row[0],
+                'product_type': row[1],
+                'study_type': row[2],
+                'brand': row[3],
+                'research_type': row[4],  
+                'total_cost': row[5],      
+                'deadline': row[6]        
+            } for row in results]
+
+            return jsonify({
+                'message': 'All pending briefs fetched successfully!',
+                'briefs': briefs,
+                'statusCode': 200,
+                'status': 'success'
+            }), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({
+            'message': 'Failed to fetch briefs!',
+            'error': str(e),
+            'statusCode': 500,
+            'status': 'error'
+        }), 500
+
+
+@app.route('/api/reviewer/todays_deadlines', methods=['GET'])
+@token_required
+def get_todays_deadlines(user_id):
+    try:
+        # Check if the user is a receiver
+        with engine.connect() as connection:
+            user_query = text("""
+                SELECT role FROM [dbo].[user_data] WHERE user_id = :user_id
+            """)
+            user_role = connection.execute(
+                user_query, {"user_id": user_id}).fetchone()
+
+            # Check if the user is a Project Coordinator
+            if not user_role or user_role.role != 'Project Coordinator':
+                return jsonify({
+                    'message': 'Unauthorized: Only Project Coordinator can access this endpoint!',
+                    'statusCode': 403,
+                    'status': 'error'
+                }), 403
+
+            query = text("""
+                SELECT 
+                    rb.category_type AS category, 
+                    rb.product_type, 
+                    rb.study_type, 
+                    rb.brand, 
+                    rb.deadline
+                FROM 
+                    [dbo].[research_brief] rb
+                JOIN 
+                    [dbo].[brief_status_actions] bsa ON rb.brief_id = bsa.brief_id
+                WHERE 
+                    bsa.status = 'Pending' AND 
+                    CONVERT(date, rb.deadline) = CONVERT(date, GETDATE())
+            """)
+
+            results = connection.execute(query).fetchall()
+
+            # Use the correct column names to create a dictionary
+            briefs = [{
+                'category': row[0],
+                'product_type': row[1],
+                'study_type': row[2],
+                'brand': row[3],
+                'deadline': row[4]
+            } for row in results]
+
+            return jsonify({
+                'message': 'Today\'s deadlines fetched successfully!',
+                'briefs': briefs,
+                'statusCode': 200,
+                'status': 'success'
+            }), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({
+            'message': 'Failed to fetch briefs!',
+            'error': str(e),
+            'statusCode': 500,
+            'status': 'error'
+        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
