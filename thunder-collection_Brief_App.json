@@ -2,7 +2,7 @@
     "clientName": "Thunder Client",
     "collectionName": "BRIEF_APP",
     "collectionId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
-    "dateExported": "2024-10-21T11:05:05.451Z",
+    "dateExported": "2024-10-22T14:31:29.011Z",
     "version": "1.2",
     "folders": [],
     "requests": [
@@ -48,6 +48,40 @@
             }
         },
         {
+            "_id": "324f6ce4-4af9-46a2-b6be-2195872a1331",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "LOGIN AS CREATOR",
+            "url": "http://127.0.0.1:5000/api/login",
+            "method": "POST",
+            "sortNum": 32500,
+            "created": "2024-10-22T13:44:29.663Z",
+            "modified": "2024-10-22T13:44:29.663Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"username\" : \"creator\",\n   \"password\": \"creator123\"\n}",
+                "form": []
+            }
+        },
+        {
+            "_id": "737fb76f-bdb9-410c-a2af-f6d511df93d7",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "LOGIN AS PROJECT COORDINATOR",
+            "url": "http://127.0.0.1:5000/api/login",
+            "method": "POST",
+            "sortNum": 35000,
+            "created": "2024-10-22T13:39:11.489Z",
+            "modified": "2024-10-22T13:40:12.021Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"username\" : \"coordinator\",\n   \"password\": \"coordinator123\"\n}",
+                "form": []
+            }
+        },
+        {
             "_id": "e1054a53-0609-46ef-a983-c42bfd4e6209",
             "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
             "containerId": "",
@@ -56,7 +90,7 @@
             "method": "POST",
             "sortNum": 40000,
             "created": "2024-10-21T10:53:30.828Z",
-            "modified": "2024-10-21T10:56:02.550Z",
+            "modified": "2024-10-22T14:11:32.903Z",
             "headers": [
                 {
                     "name": "x-access-token",
@@ -65,10 +99,88 @@
             ],
             "body": {
                 "type": "json",
-                "raw": "{\r\n    \"category_type\": \"Market Research\",\r\n    \"product_type\": \"Skincare\",\r\n    \"brand\": \"Meera\",\r\n    \"study_type\": \"Pack Test\",\r\n    \"market_objective\": \"Increase awareness\",\r\n    \"research_objective\": \"Understand consumer behavior\",\r\n    \"research_tg\": \"18-25 year old females\",\r\n    \"research_design\": \"Survey\",\r\n    \"key_information_area\": \"Product features and benefits\",\r\n    \"deadline\": \"2024-12-31T00:00:00\",\r\n    \"city\": [\"New York\", \"Los Angeles\"],  \r\n    \"npd_stage_gates\": [\"Concept\", \"Product Test\"],\r\n    \"epd_stage\": \"Relaunch\",  \r\n    \"file_attachment\": \"path/to/attachment.pdf\" \r\n}\r\n",
+                "raw": "{\n    \"category_type\": \"Market Research2\",\n    \"product_type\": \"Skincare\",\n    \"brand\": \"Meera\",\n    \"study_type\": \"Pack Test\",\n    \"market_objective\": \"Increase awareness\",\n    \"research_objective\": \"Understand consumer behavior\",\n    \"research_tg\": \"18-25 year old females\",\n    \"research_design\": \"Survey\",\n    \"key_information_area\": \"Product features and benefits\",\n    \"deadline\": \"2024-10-22T00:00:00\",\n    \"city\": [\"New York\", \"Los Angeles\"],  \n    \"npd_stage_gates\": [\"Concept\", \"Product Test\"],\n    \"epd_stage\": \"Relaunch\",  \n    \"file_attachment\": \"path/to/attachment.pdf\" \n}\n",
                 "form": []
             }
+        },
+        {
+            "_id": "719c2a0c-51c1-4774-9402-f754d08b5134",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "APPROVE BRIEF",
+            "url": "http://localhost:5000/api/approve_brief/1",
+            "method": "PUT",
+            "sortNum": 50000,
+            "created": "2024-10-22T13:38:52.892Z",
+            "modified": "2024-10-22T13:40:55.469Z",
+            "headers": [
+                {
+                    "name": "x-access-token",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJleHAiOjE3MzIyMTYyMTJ9.SMxkQcskMc1ELWnAXNywOiUPXhdlwdY7pGDhJ-mugIs"
+                }
+            ],
+            "body": {
+                "type": "json",
+                "raw": "{\r\n  \"start_date\": \"2024-11-01\",\r\n  \"po_approval\": \"2024-11-03\",\r\n  \"agency_finalisation\": \"2024-11-05\",\r\n  \"questionnaire_coding_date\": \"2024-11-10\",\r\n  \"cpi_total\": 5000,\r\n  \"travel_cost\": 300,\r\n  \"miscellaneous_cost\": 200,\r\n  \"total_cost\": 5500,\r\n  \"research_design_attachment\": \"path/to/research_design.pdf\"\r\n}\r\n",
+                "form": []
+            }
+        },
+        {
+            "_id": "ea51f690-c436-4e19-bcd6-3c63839ed970",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "REJECT BRIEF",
+            "url": "http://localhost:5000/api/reject_brief/1",
+            "method": "PUT",
+            "sortNum": 60000,
+            "created": "2024-10-22T13:51:55.466Z",
+            "modified": "2024-10-22T13:52:38.647Z",
+            "headers": [
+                {
+                    "name": "x-access-token",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJleHAiOjE3MzIyMTYyMTJ9.SMxkQcskMc1ELWnAXNywOiUPXhdlwdY7pGDhJ-mugIs"
+                }
+            ],
+            "body": {
+                "type": "json",
+                "raw": "{\r\n  \"rejection_reason\": \"The brief is incomplete and does not meet the requirements.\"\r\n}\r\n",
+                "form": []
+            }
+        },
+        {
+            "_id": "620b7e6f-f1d2-4acd-ae0a-83c7996a9aa8",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "GET TODAY DEADLINE",
+            "url": "http://localhost:5000/api/reviewer/todays_deadlines",
+            "method": "GET",
+            "sortNum": 70000,
+            "created": "2024-10-22T13:58:53.698Z",
+            "modified": "2024-10-22T14:01:29.613Z",
+            "headers": [
+                {
+                    "name": "x-access-token",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJleHAiOjE3MzIyMTYyMTJ9.SMxkQcskMc1ELWnAXNywOiUPXhdlwdY7pGDhJ-mugIs"
+                }
+            ]
+        },
+        {
+            "_id": "38394f75-2bfa-4e2f-ba3a-0009fe4f64a2",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "GET ALL PENDING",
+            "url": "http://localhost:5000/api/reviewer/all_briefs",
+            "method": "GET",
+            "sortNum": 80000,
+            "created": "2024-10-22T14:26:27.193Z",
+            "modified": "2024-10-22T14:27:57.302Z",
+            "headers": [
+                {
+                    "name": "x-access-token",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJleHAiOjE3MzIyMTYyMTJ9.SMxkQcskMc1ELWnAXNywOiUPXhdlwdY7pGDhJ-mugIs"
+                }
+            ]
         }
     ],
-    "ref": "2jtZER0NAQipB4ROr3KEPW4xfBy5gLPAZOzeOq9vqa8p9DTzBWYV9LTgefO4fAysM0m_22DAzk6_0O33F1XR-A"
+    "ref": "2jtZER0NAQipB4ROr3KEPSem3a9oW0fAMqXLog6VW5nvV8eOBEwkSMIVtOZJonr-xSTKQkRbzSDm3Uo9B8XJrw"
 }
