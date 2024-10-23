@@ -1,3 +1,5 @@
+from flask import Flask, request, jsonify
+from sqlalchemy import text
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 from sqlalchemy import create_engine, text
@@ -53,8 +55,8 @@ def test_db_connection():
         return jsonify({'message': 'Database connection failed!', 'error': str(e), 'statusCode': 500, 'status': 'error'}), 500
 
 
-@app.route('/api/register', methods=['POST'])
-def register():
+@app.route('/api/register_all', methods=['POST'])
+def register_all():
 
     try:
         with engine.connect() as connection:
@@ -80,6 +82,62 @@ def register():
     except SQLAlchemyError as e:
         return jsonify({'message': 'User registration failed!', 'error': str(e), 'statusCode': 500, 'status': 'error'}), 500
 
+@app.route('/api/register', methods=['POST'])
+def register():
+    try:
+        data = request.get_json()
+
+        # Required fields validation
+        required_fields = ['username', 'password',
+                           'user_firstname', 'user_lastname', 'user_email', 'role']
+        if not all(field in data for field in required_fields):
+            return jsonify({
+                'message': 'Missing required fields!',
+                'statusCode': 400,
+                'status': 'error'
+            }), 400
+
+        # Validate role (only "Creator" or "Project Coordinator" allowed)
+        if data['role'] not in ['Creator', 'Project Coordinator']:
+            return jsonify({
+                'message': 'Invalid role! Only "Creator" or "Project Coordinator" roles can be assigned.',
+                'statusCode': 400,
+                'status': 'error'
+            }), 400
+
+        # Hash the password
+        password_hash = generate_password_hash(data['password'])
+
+        # Insert the new user into the database
+        with engine.connect() as connection:
+            insert_query = text("""
+                INSERT INTO [dbo].[user_data] 
+                (username, password, user_firstname, user_lastname, user_email, role) 
+                VALUES (:username, :password, :user_firstname, :user_lastname, :user_email, :role)
+            """)
+            connection.execute(insert_query, {
+                "username": data["username"],
+                "password": password_hash,
+                "user_firstname": data["user_firstname"],
+                "user_lastname": data["user_lastname"],
+                "user_email": data["user_email"],
+                "role": data["role"]
+            })
+
+        return jsonify({
+            'message': f'User {data["username"]} registered successfully as {data["role"]}!',
+            'statusCode': 201,
+            'status': 'success'
+        }), 201
+
+    except SQLAlchemyError as e:
+        return jsonify({
+            'message': 'User registration failed!',
+            'error': str(e),
+            'statusCode': 500,
+            'status': 'error'
+        }), 500
+        
 
 @app.route('/api/login', methods=['POST'])
 @json_required
