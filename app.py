@@ -15,13 +15,20 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlalchemy as sa
 import jwt
+from flask_mail import Mail, Message
 
 #change might be required here!
 from utils import *
 
 app = Flask(__name__)
 
-
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'  
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = 'update this'  
+app.config['MAIL_PASSWORD'] = 'update this'
+app.config['MAIL_DEFAULT_SENDER'] = 'update this'
+mail = Mail(app)
 
 connection_url = sa.engine.URL.create(
     "mssql+pyodbc",
@@ -37,6 +44,18 @@ connection_url = sa.engine.URL.create(
 engine = sa.create_engine(connection_url)
 
 
+def send_email(to, subject, body):
+    try:
+        msg = Message(subject, recipients=[to])
+        msg.body = body
+
+        # Send the email
+        mail.send(msg)
+
+        return {"message": "Email sent successfully", "status": "success"}, 200
+
+    except Exception as e:
+        return {"message": "Failed to send email", "error": str(e), "status": "error"}, 500
 
 # ALL API ROUTES STARTS HERE 
 @app.route("/api")
@@ -83,7 +102,8 @@ def register_all():
         return jsonify({'message': 'User registration failed!', 'error': str(e), 'statusCode': 500, 'status': 'error'}), 500
 
 @app.route('/api/register', methods=['POST'])
-def register():
+@token_required
+def register(user_id):
     try:
         data = request.get_json()
 
@@ -110,6 +130,35 @@ def register():
 
         # Insert the new user into the database
         with engine.connect() as connection:
+            user_query = text("""
+                SELECT role FROM [dbo].[user_data] WHERE user_id = :user_id
+            """)
+            user_role = connection.execute(
+                user_query, {"user_id": user_id}).fetchone()
+
+            if not user_role or user_role.role != 'Admin':
+                return jsonify({
+                    'message': 'Unauthorized: Only Creator role users can submit a brief!',
+                    'statusCode': 403,
+                    'status': 'error'
+                }), 403
+            
+            username_query = text(
+                "SELECT COUNT(*) FROM [dbo].[user_data] WHERE username = :username")
+            username_exists = connection.execute(
+                username_query, {"username": data["username"]}).scalar() > 0
+
+            email_query = text(
+                "SELECT COUNT(*) FROM [dbo].[user_data] WHERE user_email = :user_email")
+            email_exists = connection.execute(
+                email_query, {"user_email": data["user_email"]}).scalar() > 0
+
+            if username_exists:
+                return jsonify({'message': 'Username is already taken!', 'statusCode': 400, 'status': 'error'}), 400
+
+            if email_exists:
+                return jsonify({'message': 'Email is already registered!', 'statusCode': 400, 'status': 'error'}), 400
+            
             insert_query = text("""
                 INSERT INTO [dbo].[user_data] 
                 (username, password, user_firstname, user_lastname, user_email, role) 
@@ -217,11 +266,11 @@ def submit_brief(user_id):
                     (creator_id, category_type, product_type, brand, study_type, 
                     market_objective, research_objective, research_tg, 
                     research_design, key_information_area, deadline, 
-                    city, npd_stage_gates, epd_stage, file_attachment) 
+                    city, npd_stage_gates, epd_stage,reason, file_attachment) 
                     VALUES (:creator_id, :category_type, :product_type, :brand, :study_type, 
                     :market_objective, :research_objective, :research_tg, 
                     :research_design, :key_information_area, :deadline, 
-                    :city, :npd_stage_gates, :epd_stage, :file_attachment)
+                    :city, :npd_stage_gates, :epd_stage,  :reason,:file_attachment)
                 """)
 
                 # Create a dictionary for parameters
@@ -240,6 +289,7 @@ def submit_brief(user_id):
                     'city': city,  # Comma-separated string for city
                     'npd_stage_gates': npd_stage_gates,  # Comma-separated string for npd_stage_gates
                     'epd_stage': data.get('epd_stage'),
+                    'reason': data.get('reason'),
                     'file_attachment': data.get('file_attachment')
                 }
                 connection.execute(insert_query, params)
@@ -267,8 +317,7 @@ def submit_brief(user_id):
 
                 # Execute the status insert query
                 connection.execute(status_insert_query, {'brief_id': brief_id})
-
-            
+                
             return jsonify({
                 'message': 'Research brief submitted successfully!',
                 'statusCode': 200,
@@ -371,7 +420,28 @@ def approve_brief(user_id, brief_id):
                 'brief_id': brief_id
             })
 
+            query = text("""
+                SELECT 
+                    u.user_email 
+                FROM 
+                    [dbo].[research_brief] rb
+                JOIN 
+                    [dbo].[user_data] u ON rb.creator_id = u.user_id
+                WHERE 
+                    rb.brief_id = :brief_id
+            """)
+            creator_email = connection.execute(
+                query, {'brief_id': brief_id}).fetchone()
+            
+            if not creator_email:
+                return jsonify({'message': 'Brief not found or no email associated!', 'statusCode': 404, 'status': 'error'}), 404
 
+            subject = f"Brief Approved: {data['category_type']} - {data['brand']}"
+            body = f"Hello,\n\nYour brief for the category {data['category_type']} and brand {
+               data['brand']} has been approved. You can now proceed with the next steps.\n\nBest regards,\nResearch Team"
+
+            send_email(creator_email, subject, body)
+            
             return jsonify({
                 'message': 'Brief approved successfully!',
                 'statusCode': 200,
@@ -578,6 +648,81 @@ def get_todays_deadlines(user_id):
             'statusCode': 500,
             'status': 'error'
         }), 500
+
+@app.route('/api/allocate_study', methods=['POST'])
+@token_required  
+@json_required
+def allocate_study(user_id):
+    try:
+        data = request.get_json()
+
+        required_fields = ['allocated_to']
+        if not all(field in data for field in required_fields):
+            return jsonify({
+                'message': 'Missing required fields!',
+                'statusCode': 400,
+                'status': 'error'
+            }), 400
+
+        with engine.connect() as connection:
+
+            user_query = text("""
+                SELECT role FROM [dbo].[user_data] WHERE user_id = :user_id
+            """)
+            user_role = connection.execute(
+                user_query, {"user_id": user_id}).fetchone()
+
+            # Check if the user is a Project Coordinator or Admin
+            if not user_role or user_role.role not in ['Project Coordinator', 'Admin']:
+                return jsonify({
+                    'message': 'Unauthorized: Only Project Coordinator can access this endpoint!',
+                    'statusCode': 403,
+                    'status': 'error'
+                }), 403
+                
+            
+            user_role = connection.execute(
+                user_query, {"user_id": data['allocated_to']}).fetchone()
+
+            # Check if the stody is allocated user is a Creator
+            if not user_role or user_role.role not in ['Creator']:
+                return jsonify({
+                    'message': 'Study only can allocated to a Creator',
+                    'statusCode': 403,
+                    'status': 'error'
+                }), 403
+                
+            allocation_query = text("""
+                INSERT INTO [dbo].[study_allocations] 
+                ( allocated_to, allocated_by, category, product_type, study_type, 
+                 brand, research_type, status) 
+                VALUES (:allocated_to, :allocated_by, :category, :product_type, 
+                :study_type, :brand, :research_type, 'Allocated')
+            """)
+            connection.execute(allocation_query, {
+                'allocated_to': data['allocated_to'],
+                'allocated_by': user_id, 
+                'category': data['category_type'],
+                'product_type': data['product_type'],
+                'study_type': data['study_type'],
+                'brand': data['brand'],
+                'research_type': data['research_type']
+            })
+
+        return jsonify({
+            'message': 'Study allocated successfully!',
+            'statusCode': 201,
+            'status': 'success'
+        }), 201
+
+    except SQLAlchemyError as e:
+        return jsonify({
+            'message': 'Study allocation failed!',
+            'error': str(e),
+            'statusCode': 500,
+            'status': 'error'
+        }), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
