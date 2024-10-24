@@ -43,14 +43,37 @@ CREATE TABLE BriefDB.dbo.research_brief (
 	deadline datetime NULL,
 	additional_information text COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 	stimulus_dispatch_date datetime NULL,
-	city varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	npd_stage_gates varchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	city varchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	npd_stage_gates varchar(255) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 	epd_stage varchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	comments text COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	reason varchar(500) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 	file_attachment varchar(255) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 	created_at datetime DEFAULT getdate() NULL,
-	CONSTRAINT PK__research__80EA6AC8BC39CB3E PRIMARY KEY (brief_id),
-	CONSTRAINT FK__research___creat__59FA5E80 FOREIGN KEY (creator_id) REFERENCES BriefDB.dbo.user_data(user_id)
+	CONSTRAINT PK__research__80EA6AC8EA3AA09F PRIMARY KEY (brief_id),
+	CONSTRAINT FK__research___creat__73BA3083 FOREIGN KEY (creator_id) REFERENCES BriefDB.dbo.user_data(user_id)
+);
+
+
+-- BriefDB.dbo.study_allocations definition
+
+-- Drop table
+
+-- DROP TABLE BriefDB.dbo.study_allocations;
+
+CREATE TABLE BriefDB.dbo.study_allocations (
+	allocation_id int IDENTITY(1,1) NOT NULL,
+	allocated_to int NOT NULL,
+	allocated_by int NOT NULL,
+	allocated_at datetime DEFAULT getdate() NULL,
+	status nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS DEFAULT 'Allocated' NULL,
+	category nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	product_type nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	study_type nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	brand nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	research_type nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	CONSTRAINT PK__study_al__5DFAFF305CD81765 PRIMARY KEY (allocation_id),
+	CONSTRAINT FK__study_all__alloc__00200768 FOREIGN KEY (allocated_to) REFERENCES BriefDB.dbo.user_data(user_id),
+	CONSTRAINT FK__study_all__alloc__01142BA1 FOREIGN KEY (allocated_by) REFERENCES BriefDB.dbo.user_data(user_id)
 );
 
 

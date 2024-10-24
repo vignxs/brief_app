@@ -2,7 +2,7 @@
     "clientName": "Thunder Client",
     "collectionName": "BRIEF_APP",
     "collectionId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
-    "dateExported": "2024-10-22T14:31:29.011Z",
+    "dateExported": "2024-10-24T21:59:13.534Z",
     "version": "1.2",
     "folders": [],
     "requests": [
@@ -17,6 +17,28 @@
             "created": "2024-10-21T09:39:17.069Z",
             "modified": "2024-10-21T10:39:45.030Z",
             "headers": []
+        },
+        {
+            "_id": "62c9db8d-a77f-466d-8580-7d347e38421e",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "REGISTER PC OR CREATOR USERS",
+            "url": "http://127.0.0.1:5000/api/register",
+            "method": "POST",
+            "sortNum": 15000,
+            "created": "2024-10-23T10:39:40.381Z",
+            "modified": "2024-10-24T19:03:29.943Z",
+            "headers": [
+                {
+                    "name": "x-access-token",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3MzI0MDgxNzN9.bCztFC2couEzw7fiCmYermgm5RA5y-goqpsJY_cYqnE"
+                }
+            ],
+            "body": {
+                "type": "json",
+                "raw": "{\n    \"username\": \"creator_use1r2\",\n    \"password\": \"securepass123\",\n    \"user_firstname\": \"John\",\n    \"user_lastname\": \"Doe\",\n    \"user_email\": \"johndo1e2@example.com\",\n    \"role\": \"Creator\"\n}\n",
+                "form": []
+            }
         },
         {
             "_id": "b2379dba-ff14-4c4d-9bcc-cb9eb80aef51",
@@ -90,7 +112,7 @@
             "method": "POST",
             "sortNum": 40000,
             "created": "2024-10-21T10:53:30.828Z",
-            "modified": "2024-10-22T14:11:32.903Z",
+            "modified": "2024-10-24T21:42:17.615Z",
             "headers": [
                 {
                     "name": "x-access-token",
@@ -99,7 +121,46 @@
             ],
             "body": {
                 "type": "json",
-                "raw": "{\n    \"category_type\": \"Market Research2\",\n    \"product_type\": \"Skincare\",\n    \"brand\": \"Meera\",\n    \"study_type\": \"Pack Test\",\n    \"market_objective\": \"Increase awareness\",\n    \"research_objective\": \"Understand consumer behavior\",\n    \"research_tg\": \"18-25 year old females\",\n    \"research_design\": \"Survey\",\n    \"key_information_area\": \"Product features and benefits\",\n    \"deadline\": \"2024-10-22T00:00:00\",\n    \"city\": [\"New York\", \"Los Angeles\"],  \n    \"npd_stage_gates\": [\"Concept\", \"Product Test\"],\n    \"epd_stage\": \"Relaunch\",  \n    \"file_attachment\": \"path/to/attachment.pdf\" \n}\n",
+                "raw": "{\n    \"category_type\": \"Market Research2\",\n    \"product_type\": \"Skincare\",\n    \"brand\": \"Meera\",\n    \"study_type\": \"Pack Test\",\n    \"market_objective\": \"Increase awareness\",\n    \"research_objective\": \"Understand consumer behavior\",\n    \"research_tg\": \"18-25 year old females\",\n    \"research_design\": \"Survey\",\n    \"key_information_area\": \"Product features and benefits\",\n    \"deadline\": \"2024-10-22T00:00:00\",\n    \"city\": [\"New York\", \"Los Angeles\"],  \n    \"npd_stage_gates\": [\"Concept\", \"Product Test\"],\n    \"epd_stage\": \"Relaunch\",  \n    \"reason\":\"test\",\n    \"file_attachment\": \"path/to/attachment.pdf\" \n}\n",
+                "form": []
+            }
+        },
+        {
+            "_id": "c26a4ba5-ddca-4a46-abc9-7852d8b851ec",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "LOGIN AS ADMIN",
+            "url": "http://127.0.0.1:5000/api/login",
+            "method": "POST",
+            "sortNum": 40000,
+            "created": "2024-10-24T18:58:32.282Z",
+            "modified": "2024-10-24T18:59:33.018Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"username\" : \"admin\",\n   \"password\": \"admin123\"\n}",
+                "form": []
+            }
+        },
+        {
+            "_id": "940b3f59-379f-40a8-94f8-6e6e648e5926",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "ALLOCATE STUDY",
+            "url": "http://127.0.0.1:5000/api/allocate_study",
+            "method": "POST",
+            "sortNum": 45000,
+            "created": "2024-10-24T21:24:33.355Z",
+            "modified": "2024-10-24T21:32:56.499Z",
+            "headers": [
+                {
+                    "name": "x-access-token",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3MzI0MDgxNzN9.bCztFC2couEzw7fiCmYermgm5RA5y-goqpsJY_cYqnE"
+                }
+            ],
+            "body": {
+                "type": "json",
+                "raw": "{\r\n    \"allocated_to\": 7,\r\n    \"category_type\": \"Market Research\",\r\n    \"product_type\": \"Skincare\",\r\n    \"study_type\": \"Pack Test\",\r\n    \"brand\": \"BrandX\",\r\n    \"research_type\": \"Survey\"\r\n}\r\n",
                 "form": []
             }
         },
@@ -182,5 +243,5 @@
             ]
         }
     ],
-    "ref": "2jtZER0NAQipB4ROr3KEPSem3a9oW0fAMqXLog6VW5nvV8eOBEwkSMIVtOZJonr-xSTKQkRbzSDm3Uo9B8XJrw"
+    "ref": "2jtZER0NAQipB4ROr3KEPVJC7XaiUjUWzOdYdbJp_HsKN4nWcGVLM7PD4ZsSMhs5jvTIDPcPITL8FhuAIiYsfw"
 }
