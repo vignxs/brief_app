@@ -51,6 +51,7 @@ users_data = [
 ]
 
 
+
 @dataclass(frozen=True, kw_only=True)
 class GetQueryStringMaker:
     table_name: str
