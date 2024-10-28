@@ -14,6 +14,8 @@ ERROR_MESSAGE_INVALID_ID = 'An error occurred while fetching data.'
 ERROR_MESSAGE_FOR_DATA_TYPE_JSON = 'Request must be a JSON'
 ERROR_NO_DATA_FOR_GIVEN_ID = "No data found the given id."
 SUCCESS_MESSAGE_FETCHED_DATA = 'Data retrieved successfully.'
+SALES_HIERARCHY_TABLE_NAME = "salesHierarchy"
+
 # Example hardcoded users data
 users_data = [
     {
@@ -146,3 +148,21 @@ def get_table_data(connection, query, columns):
         ]
     else:
         return None
+
+
+def key_required(key):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            data = request.get_json()
+            pk = data.get(key, None)
+            if not pk:
+                return jsonify({
+                    "message": f"Invalid or missing {key} in request.",
+                    "error": ERROR_MESSAGE_INVALID_ID,
+                    "statusCode": 500,
+                    "status": "error"
+                }), 500
+            return f(pk, *args, **kwargs)
+        return decorated_function
+    return decorator

@@ -172,6 +172,21 @@ def register(user_id):
                 "user_email": data["user_email"],
                 "role": data["role"]
             })
+            
+        subject = f"Account Created: Welcome to the Brief Portal, {
+            data['username']}"
+
+
+        body = f"""Hello {data['username']},
+
+        Your account has been successfully created! You can now log in to the Brief Portal to manage and view your briefs.
+
+        Best regards,
+        The Research Team
+        """
+
+        send_email(data["user_email"], subject, body)
+
 
         return jsonify({
             'message': f'User {data["username"]} registered successfully as {data["role"]}!',
@@ -318,6 +333,23 @@ def submit_brief(user_id):
                 # Execute the status insert query
                 connection.execute(status_insert_query, {'brief_id': brief_id})
                 
+            subject = f"New Brief Submitted: {
+                data['category_type']} - {data['brand']}"
+
+
+            body = f"""Hello,
+
+            A new brief has been submitted by Creator.
+
+            Please log in to the Brief Portal to review and manage this brief.
+
+            Best regards,
+            The Research Team
+            """
+            
+            #TODO: add project coordinator email
+            # send_email(data["project_coordinator_email"], subject, body)
+
             return jsonify({
                 'message': 'Research brief submitted successfully!',
                 'statusCode': 200,
@@ -366,7 +398,7 @@ def approve_brief(user_id, brief_id):
             user_role = connection.execute(
                 user_role_query, {"user_id": user_id}).fetchone()
 
-            if not user_role or user_role.role != 'Project Coordinator':
+            if not user_role or user_role.role in ['Project Coordinator', 'Creator']:
                 return jsonify({
                     'message': 'Unauthorized: Only Project Coordinators can approve briefs!',
                     'statusCode': 403,
@@ -482,7 +514,7 @@ def reject_brief(user_id, brief_id):
             user_role = connection.execute(
                 user_role_query, {"user_id": user_id}).fetchone()
 
-            if not user_role or user_role.role != 'Project Coordinator':
+            if not user_role or user_role.role in ['Project Coordinator' , 'Creator']:
                 return jsonify({
                     'message': 'Unauthorized: Only Project Coordinators can reject briefs!',
                     'statusCode': 403,
@@ -505,6 +537,27 @@ def reject_brief(user_id, brief_id):
                 'brief_id': brief_id
             })
 
+            query = text("""
+                SELECT 
+                    u.user_email 
+                FROM 
+                    [dbo].[research_brief] rb
+                JOIN 
+                    [dbo].[user_data] u ON rb.creator_id = u.user_id
+                WHERE 
+                    rb.brief_id = :brief_id
+            """)
+            creator_email = connection.execute(
+                query, {'brief_id': brief_id}).fetchone()
+
+            if not creator_email:
+                return jsonify({'message': 'Brief not found or no email associated!', 'statusCode': 404, 'status': 'error'}), 404
+
+            subject = f"Brief Rejected"
+            body = f"Hello,\n\nYour brief has been rejected. You can now proceed with the next steps.\n\nBest regards,\nResearch Team"
+
+            send_email(creator_email, subject, body)
+            
             return jsonify({
                 'message': 'Brief rejected successfully!',
                 'statusCode': 200,
@@ -718,6 +771,149 @@ def allocate_study(user_id):
     except SQLAlchemyError as e:
         return jsonify({
             'message': 'Study allocation failed!',
+            'error': str(e),
+            'statusCode': 500,
+            'status': 'error'
+        }), 500
+
+
+   
+@app.route("/api/get_distributor_sde",methods=["POST"])
+@json_required
+@key_required("asm_code")
+def get_distributor_and_sde_for_the_asm(pk):
+    try:
+        with engine.connect() as connection:
+            sales_hierarchy_table=GetQueryStringReturn(table_name=SALES_HIERARCHY_TABLE_NAME,
+                                             schema=SCHEMA_NAME,
+                                             columns='"rs_code" AS value,"rs_name" AS label',
+                                             condition=f"asm_emp_id='{str(pk)}'")
+            sales_hierarchy_table_exec_string=sales_hierarchy_table.unique_values_of_given_columns_with_condition()
+            print(sales_hierarchy_table_exec_string)
+            data_distributors_list = get_table_data(connection, sales_hierarchy_table_exec_string,["value","label"])
+            sales_hierarchy_table=GetQueryStringReturn(table_name=SALES_HIERARCHY_TABLE_NAME,
+                                             schema=SCHEMA_NAME,
+                                             columns='"sde_emp_id" AS value,"sde_name" AS label',
+                                             condition=f"asm_emp_id='{str(pk)}'")
+            sales_hierarchy_table_exec_string=sales_hierarchy_table.unique_values_of_given_columns_with_condition()
+            data_sde_list = get_table_data(connection, sales_hierarchy_table_exec_string,["value","label"])
+              
+            results_of_asm_list=[
+                    {
+                    "q_id":2,
+                    "ans":data_distributors_list
+                    },
+                   {
+                    "q_id":42,
+                    "ans":data_sde_list
+                    },
+                ]
+       
+            return jsonify({
+                "message": SUCCESS_MESSAGE_FETCHED_DATA,
+                "result":results_of_asm_list,
+                "statusCode": 200,
+                "status": "success"
+                }),200
+        
+    except Exception as e:
+        return jsonify({
+                "message": ERROR_MESSAGE_FETCHING_DATA,
+				"error": str(e),
+				"statusCode": 500,
+				"status": "error"
+            }), 500
+
+
+@app.route('/api/link_study_brief', methods=['POST'])
+@json_required
+@token_required
+def link_study_to_brief(user_id):
+    data = request.get_json()
+    try:
+        with engine.connect() as connection:
+            insert_query = text("""
+                INSERT INTO study_brief_link (brief_id, allocation_id, status, notes, created_by)
+                VALUES (:brief_id, :allocation_id, 'Pending', :notes, :created_by)
+            """)
+            connection.execute(insert_query, {
+                'brief_id': data['brief_id'],
+                'allocation_id': data['allocation_id'],
+                'notes': data.get('notes', ''),
+                'created_by':user_id,
+            })
+
+        return jsonify({'message': 'Study linked to brief successfully!', 'statusCode': 200, 'status': 'success'}), 201
+
+    except SQLAlchemyError as e:
+        return jsonify({'message': 'Failed to link study to brief!', 'error': str(e), 'statusCode': 500, 'status': 'error'}), 500
+
+@app.route('/api/brief_status', methods=['GET'])
+@token_required
+def get_brief_status(user_id):
+
+    try:
+        with engine.connect() as connection:
+            # Check if the user is a Creator
+            role_query = text("""
+                SELECT role FROM user_data WHERE user_id = :user_id
+            """)
+            user_role = connection.execute(role_query, {'user_id': user_id}).fetchone()
+
+            # Return an error if the user is not a Creator
+            if not user_role or user_role.role != 'Creator':
+                return jsonify({
+                    'message': 'Unauthorized: Only Creator role users can access this!',
+                    'statusCode': 403,
+                    'status': 'error'
+                }), 403
+
+            # Query to retrieve the brief statuses for the specific Creator user
+            query = text("""
+                SELECT 
+                    bsa.brief_id, 
+                    bsa.total_cost,
+                    bsa.status,
+                    rb.created_at,
+                    rb.category_type AS category,
+                    rb.product_type,
+                    rb.study_type,
+                    rb.brand
+                FROM 
+                    brief_status_actions bsa
+                JOIN 
+                    research_brief rb ON rb.brief_id = bsa.brief_id
+                WHERE 
+                    rb.creator_id = :user_id
+                ORDER BY 
+                    rb.created_at DESC
+            """)
+
+            results = connection.execute(query, {'user_id': user_id}).fetchall()
+            
+            # Convert the results into a list of dictionaries for JSON response
+            briefs_status = [{
+                'brief_id': row._mapping['brief_id'],
+                'total_cost': row._mapping['total_cost'],
+                'status': row._mapping['status'],
+                'created_at': row._mapping['created_at'],
+                'category': row._mapping['category'],
+                'product_type': row._mapping['product_type'],
+                'study_type': row._mapping['study_type'],
+                'brand': row._mapping['brand']
+            } for row in results]
+
+
+        return jsonify({
+            'message': 'Brief status retrieved successfully!',
+            'data': briefs_status,
+            'statusCode': 200,
+            'status': 'success'
+        }), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({
+            'message': 'Failed to retrieve brief status!',
             'error': str(e),
             'statusCode': 500,
             'status': 'error'
