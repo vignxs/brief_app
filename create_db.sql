@@ -77,6 +77,26 @@ CREATE TABLE BriefDB.dbo.study_allocations (
 );
 
 
+-- BriefDB.dbo.study_brief_link definition
+
+-- Drop table
+
+-- DROP TABLE BriefDB.dbo.study_brief_link;
+
+CREATE TABLE BriefDB.dbo.study_brief_link (
+	link_id int IDENTITY(1,1) NOT NULL,
+	brief_id int NOT NULL,
+	allocation_id int NOT NULL,
+	assigned_date datetime DEFAULT getdate() NULL,
+	status varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS DEFAULT 'Pending' NULL,
+	notes nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	created_by int NOT NULL,
+	CONSTRAINT PK__study_br__93B0078CEE9059B0 PRIMARY KEY (link_id),
+	CONSTRAINT FK__study_bri__alloc__0C85DE4D FOREIGN KEY (allocation_id) REFERENCES BriefDB.dbo.study_allocations(allocation_id) ON DELETE CASCADE,
+	CONSTRAINT FK__study_bri__brief__0B91BA14 FOREIGN KEY (brief_id) REFERENCES BriefDB.dbo.research_brief(brief_id) ON DELETE CASCADE
+);
+
+
 -- BriefDB.dbo.brief_status_actions definition
 
 -- Drop table

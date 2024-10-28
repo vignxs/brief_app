@@ -2,7 +2,7 @@
     "clientName": "Thunder Client",
     "collectionName": "BRIEF_APP",
     "collectionId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
-    "dateExported": "2024-10-24T21:59:13.534Z",
+    "dateExported": "2024-10-28T04:54:25.856Z",
     "version": "1.2",
     "folders": [],
     "requests": [
@@ -78,11 +78,11 @@
             "method": "POST",
             "sortNum": 32500,
             "created": "2024-10-22T13:44:29.663Z",
-            "modified": "2024-10-22T13:44:29.663Z",
+            "modified": "2024-10-28T04:24:09.224Z",
             "headers": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"username\" : \"creator\",\n   \"password\": \"creator123\"\n}",
+                "raw": "{\r\n  \"username\" : \"creator\",\r\n   \"password\": \"creator123\"\r\n}",
                 "form": []
             }
         },
@@ -165,6 +165,28 @@
             }
         },
         {
+            "_id": "6342f87a-2698-44a1-9206-c6698f5c81f8",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "STUDY BRIEF LINK",
+            "url": "http://127.0.0.1:5000/api/link_study_brief",
+            "method": "POST",
+            "sortNum": 47500,
+            "created": "2024-10-28T04:23:27.396Z",
+            "modified": "2024-10-28T04:28:42.422Z",
+            "headers": [
+                {
+                    "name": "x-access-token",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE3MzI3MDExOTh9.-QJ9Rjyto9heBP7XHd30aMvjMuLVNIglN3toJg8HKvc"
+                }
+            ],
+            "body": {
+                "type": "json",
+                "raw": "{\r\n    \"brief_id\": 1,\r\n    \"allocation_id\": 1,\r\n    \"notes\": \"Initial research allocation for the brief.\"\r\n}\r\n",
+                "form": []
+            }
+        },
+        {
             "_id": "719c2a0c-51c1-4774-9402-f754d08b5134",
             "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
             "containerId": "",
@@ -241,7 +263,39 @@
                     "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJleHAiOjE3MzIyMTYyMTJ9.SMxkQcskMc1ELWnAXNywOiUPXhdlwdY7pGDhJ-mugIs"
                 }
             ]
+        },
+        {
+            "_id": "6aa6cf03-f581-409d-8554-bbba33b8e614",
+            "colId": "4609d8dc-8a8f-4367-bbf5-a3cc533e6bc2",
+            "containerId": "",
+            "name": "GET BRIEF STATUS",
+            "url": "http://localhost:5000/api/brief_status",
+            "method": "GET",
+            "sortNum": 80000,
+            "created": "2024-10-28T04:33:12.239Z",
+            "modified": "2024-10-28T04:38:31.567Z",
+            "headers": [
+                {
+                    "name": " Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                },
+                {
+                    "name": "x-access-token",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE3MzI3MDExOTh9.-QJ9Rjyto9heBP7XHd30aMvjMuLVNIglN3toJg8HKvc"
+                },
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                }
+            ]
         }
     ],
-    "ref": "2jtZER0NAQipB4ROr3KEPVJC7XaiUjUWzOdYdbJp_HsKN4nWcGVLM7PD4ZsSMhs5jvTIDPcPITL8FhuAIiYsfw"
+    "ref": "2jtZER0NAQipB4ROr3KEPfrGOtucgC9RR5-JctTrKm4NMqhkvZTmgdRjhkQ8B3PN0mjt6JlTBL84VWzKSAsj8w"
 }
